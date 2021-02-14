@@ -2,8 +2,12 @@ import lombok.RequiredArgsConstructor;
 import model.Loads;
 import model.Location;
 import model.MasterEntity;
-import repository.impl.LoadsRepositoryImpl;
-import repository.impl.LocationRepositoryImpl;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import util.HibernateAnnotationUtil;
+//import repository.impl.LoadsRepositoryImpl;
+//import repository.impl.LocationRepositoryImpl;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -17,12 +21,46 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class Application {
 
-    private final LoadsRepositoryImpl loadsRepo;
-    private final LocationRepositoryImpl locationRepo;
+//    private final LoadsRepositoryImpl loadsRepo;
+//    private final LocationRepositoryImpl locationRepo;
 
-    public static void main(String[] args) throws JAXBException, FileNotFoundException {
-        Application app = new Application(new LoadsRepositoryImpl(), new LocationRepositoryImpl());
-        app.XMLWriter();
+    public static void main(String[] args) {
+        Application app = new Application(/*new LoadsRepositoryImpl(), new LocationRepositoryImpl()*/);
+
+//in main()
+        SessionFactory sessionFactory = HibernateAnnotationUtil.getSessionFactory();
+        Session session = sessionFactory.getCurrentSession();
+        System.out.println("Session created"); //ok
+
+        Transaction tx = session.beginTransaction();
+
+        Location location1 = new Location("A");
+        Location location2 = new Location("B");
+        Loads loads1 = new Loads("LD99");
+        Loads loads2 = new Loads("LD100");
+        loads1.setLocation(location1);
+        loads2.setLocation(location2);
+        session.save(location1);
+        session.save(location2);
+        session.save(loads1);
+        session.save(loads2);
+
+        tx.commit();
+        System.out.println("location1 ID=" + location1.getId());
+        System.out.println("location2 ID=" + location2.getId());
+        System.out.println("loads1 ID=" + loads1.getId()
+                + ", Foreign Key Location ID=" + loads1.getLocation().getId());
+        System.out.println("loads2 ID=" + loads2.getId()
+                + ", Foreign Key Location ID=" + loads2.getLocation().getId());
+
+
+//        Set<Loads> loadsSet = new HashSet<>();
+//        loadsSet.add(loads1);
+//        loadsSet.add(loads2);
+//        location1.setLoads(loadsSet); // wrong!
+
+
+        //        app.XMLWriter();
 
 //        app.createLoads(1, "A");
 //        app.createLoads(2, "B");
@@ -35,36 +73,36 @@ public class Application {
 //        app.getLoadsAmountByLocName("A B A C");
     }
 
-    private void createLoads(int loadsAmount, String locationName) {
-        if (locationRepo.findByName(locationName) == null) {
-            locationRepo.insert(new Location(0, locationName));
-        }
-        int locId = locationRepo.findByName(locationName).getId();
-        AtomicInteger count;
-        if (loadsRepo.findAll().size() > 0) {
-            count = new AtomicInteger(loadsRepo.getMaxId());
-        } else {
-            count = new AtomicInteger(0);
-        }
-        for (int i = 0; i < loadsAmount; i++) {
-            loadsRepo.insert(new Loads(0, "LD" + count.incrementAndGet(), locId));
-        }
-    }
+//    private void createLoads(int loadsAmount, String locationName) {
+//        if (locationRepo.findByName(locationName) == null) {
+//            locationRepo.insert(new Location(0, locationName));
+//        }
+//        int locId = locationRepo.findByName(locationName).getId();
+//        AtomicInteger count;
+//        if (loadsRepo.findAll().size() > 0) {
+//            count = new AtomicInteger(loadsRepo.getMaxId());
+//        } else {
+//            count = new AtomicInteger(0);
+//        }
+//        for (int i = 0; i < loadsAmount; i++) {
+//            loadsRepo.insert(new Loads(0, "LD" + count.incrementAndGet(), locId));
+//        }
+//    }
 
-    private void getLoadsAmountByLocName(String input) {
-        String[] strSpaces = input.split(" ");
-        String[] strCommas = input.split(",");
-        List<String> stringList = loadsRepo.getLocNames();
-        if (strCommas.length > strSpaces.length) {
-            for (String s : strCommas) {
-                System.out.println(s + "  -  " + getAmountByLocName(stringList, s));
-            }
-        } else {
-            for (String s : strSpaces) {
-                System.out.println(s + "  -  " + getAmountByLocName(stringList, s));
-            }
-        }
-    }
+//    private void getLoadsAmountByLocName(String input) {
+//        String[] strSpaces = input.split(" ");
+//        String[] strCommas = input.split(",");
+//        List<String> stringList = loadsRepo.getLocNames();
+//        if (strCommas.length > strSpaces.length) {
+//            for (String s : strCommas) {
+//                System.out.println(s + "  -  " + getAmountByLocName(stringList, s));
+//            }
+//        } else {
+//            for (String s : strSpaces) {
+//                System.out.println(s + "  -  " + getAmountByLocName(stringList, s));
+//            }
+//        }
+//    }
 
     private int getAmountByLocName(List<String> stringList, String locName) {
         List<String> copy = new ArrayList<>(stringList);
@@ -93,53 +131,53 @@ public class Application {
     }
 
     //todo
-    public static void mainMenu() {
-        try {
-            Application app = new Application(new LoadsRepositoryImpl(), new LocationRepositoryImpl());
-            String mainMenu =
-                    "Введите номер или название из списка и нажмите \"Enter\"\n" +
-                            "1. Создание N кол-ва грузов в ячейке\n" +
-                            "2. Вывод общей информации о грузах в ячейках\n" +
-                            "3. Экспорт всех данных в xml файл\n" +
-                            "0. Стоп\n";
-            System.out.println(mainMenu);
-            System.out.printf("Ввод: ");
-
-            Scanner sc = new Scanner(System.in);
-            while (sc.hasNext()) {
-                String in = sc.nextLine();
-                switch (in.toLowerCase(Locale.ROOT)) {
-                    case "0":
-                    case "стоп":
-                        return;
-                    case "1":
-                    case "создание n кол-ва грузов в ячейке":
-                        System.out.printf("\nВведите через пробел количество грузов и название ячейки: ");
-                        String[] strings = sc.nextLine().split(" ");
-                        try {
-                            Integer.parseInt(strings[0]);
-                        } catch (NumberFormatException e) {
-                            mainMenu();
-                        }
-                        app.createLoads(Integer.parseInt(strings[0]), strings[1]);
-                        mainMenu();
-                    case "2":
-                    case "вывод общей информации о грузах в ячейках":
-                        System.out.printf("\nВведите название ячейки: ");
-                        app.getLoadsAmountByLocName(sc.nextLine());
-                        mainMenu();
-                    case "3":
-                    case "экспорт всех данных в xml файл":
-                        app.XMLWriter();
-                        mainMenu();
-                    default:
-                        System.out.println("\nНеверный ввод. Попробуйте еще раз через 3 секунды\n");
-                        Thread.sleep(3000);
-                        mainMenu();
-                }
-            }
-        } catch (JAXBException | FileNotFoundException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void mainMenu() {
+//        try {
+//            Application app = new Application(new LoadsRepositoryImpl(), new LocationRepositoryImpl());
+//            String mainMenu =
+//                    "Введите номер или название из списка и нажмите \"Enter\"\n" +
+//                            "1. Создание N кол-ва грузов в ячейке\n" +
+//                            "2. Вывод общей информации о грузах в ячейках\n" +
+//                            "3. Экспорт всех данных в xml файл\n" +
+//                            "0. Стоп\n";
+//            System.out.println(mainMenu);
+//            System.out.printf("Ввод: ");
+//
+//            Scanner sc = new Scanner(System.in);
+//            while (sc.hasNext()) {
+//                String in = sc.nextLine();
+//                switch (in.toLowerCase(Locale.ROOT)) {
+//                    case "0":
+//                    case "стоп":
+//                        return;
+//                    case "1":
+//                    case "создание n кол-ва грузов в ячейке":
+//                        System.out.printf("\nВведите через пробел количество грузов и название ячейки: ");
+//                        String[] strings = sc.nextLine().split(" ");
+//                        try {
+//                            Integer.parseInt(strings[0]);
+//                        } catch (NumberFormatException e) {
+//                            mainMenu();
+//                        }
+//                        app.createLoads(Integer.parseInt(strings[0]), strings[1]);
+//                        mainMenu();
+//                    case "2":
+//                    case "вывод общей информации о грузах в ячейках":
+//                        System.out.printf("\nВведите название ячейки: ");
+//                        app.getLoadsAmountByLocName(sc.nextLine());
+//                        mainMenu();
+//                    case "3":
+//                    case "экспорт всех данных в xml файл":
+//                        app.XMLWriter();
+//                        mainMenu();
+//                    default:
+//                        System.out.println("\nНеверный ввод. Попробуйте еще раз через 3 секунды\n");
+//                        Thread.sleep(3000);
+//                        mainMenu();
+//                }
+//            }
+//        } catch (JAXBException | FileNotFoundException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

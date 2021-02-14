@@ -2,22 +2,27 @@ package model;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.xml.bind.annotation.XmlAttribute;
+import java.util.Set;
 
-@Entity
 @Setter
 @Getter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class Location extends MasterEntity {
-    @XmlAttribute
-    @Id
+public class Location {
     private int id;
 
-    @XmlAttribute
     private String name;
+
+    Set<Loads> loads;
+
+    public Location(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Location(String name) {
+        this.name = name;
+    }
 }
 
