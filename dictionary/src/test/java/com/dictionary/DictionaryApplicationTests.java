@@ -1,13 +1,12 @@
-package com.reference;
+package com.dictionary;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ReferenceApplicationTests {
+class DictionaryApplicationTests {
 
     @Test
     void contextLoads() {
     }
-
 }
