@@ -1,136 +1,126 @@
-import lombok.RequiredArgsConstructor;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 import model.Loads;
 import model.Location;
-import model.MasterEntity;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import util.HibernateAnnotationUtil;
-//import repository.impl.LoadsRepositoryImpl;
-//import repository.impl.LocationRepositoryImpl;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
-@RequiredArgsConstructor
 public class Application {
 
-//    private final LoadsRepositoryImpl loadsRepo;
-//    private final LocationRepositoryImpl locationRepo;
+    public static void main(String[] args) throws Exception {
 
-    public static void main(String[] args) {
-        Application app = new Application(/*new LoadsRepositoryImpl(), new LocationRepositoryImpl()*/);
+        String databaseUrl = "jdbc:sqlite:memory:logistic";
+        ConnectionSource con = new JdbcConnectionSource(databaseUrl);
 
-//in main()
-        SessionFactory sessionFactory = HibernateAnnotationUtil.getSessionFactory();
-        Session session = sessionFactory.getCurrentSession();
-        System.out.println("Session created"); //ok
+        // instantiate the dao
+        Dao<Location, Long> locationDao = DaoManager.createDao(con, Location.class);
+        Dao<Loads, Long> loadsDao = DaoManager.createDao(con, Loads.class);
 
-        Transaction tx = session.beginTransaction();
+        // if you need to create the 'accounts' table make this call
+        TableUtils.createTable(con, Location.class);
+        TableUtils.createTable(con, Loads.class);
 
-        Location location1 = new Location("A");
-        Location location2 = new Location("B");
-        Loads loads1 = new Loads("LD99");
-        Loads loads2 = new Loads("LD100");
-        loads1.setLocation(location1);
-        loads2.setLocation(location2);
-        session.save(location1);
-        session.save(location2);
-        session.save(loads1);
-        session.save(loads2);
+        // create an instance of Account
+        Location l1 = new Location(null, "testLoc1");
+        Location l2 = new Location(null, "testLoc2");
+        Location l3 = new Location(null, "testLoc3");
 
-        tx.commit();
-        System.out.println("location1 ID=" + location1.getId());
-        System.out.println("location2 ID=" + location2.getId());
-        System.out.println("loads1 ID=" + loads1.getId()
-                + ", Foreign Key Location ID=" + loads1.getLocation().getId());
-        System.out.println("loads2 ID=" + loads2.getId()
-                + ", Foreign Key Location ID=" + loads2.getLocation().getId());
+        // persist the account object to the database
+        locationDao.create(l1);
+        locationDao.create(l2);
+        locationDao.create(l3);
 
+        // retrieve the account from the database by its id field (name)
+//            Account account2 = loadsDao.queryForId("Jim Coakley");
+//            System.out.println("Account: " + account2.getName());
 
-//        Set<Loads> loadsSet = new HashSet<>();
-//        loadsSet.add(loads1);
-//        loadsSet.add(loads2);
-//        location1.setLoads(loadsSet); // wrong!
+        loadsDao.create(new Loads(null, "l1", 1L));
+        loadsDao.create(new Loads(null, "l2", 2L));
+        loadsDao.create(new Loads(null, "l3", 3L));
 
+        List<Location> locationList = locationDao.queryForAll();
+        System.out.println(locationList);
 
-        //        app.XMLWriter();
+        Location location1 = locationDao.queryForId(1L);
+        System.out.println(location1.toString());
+        System.out.println("----");
+        System.out.println(loadsDao.queryForId(3L));
+        Loads loads1 = loadsDao.queryForId(1L);
+        Loads loads2 = loadsDao.queryForId(2L);
+        System.out.println(loads1);
+        System.out.println(loads2);
 
-//        app.createLoads(1, "A");
-//        app.createLoads(2, "B");
-//        app.createLoads(3, "C");
-
-//        List<Loads> loadsList = app.loadsRepo.findAll();
-//        System.out.println(loadsList.toString());
-
-
-//        app.getLoadsAmountByLocName("A B A C");
+        // close the connection source
+        con.close();
     }
 
-//    private void createLoads(int loadsAmount, String locationName) {
-//        if (locationRepo.findByName(locationName) == null) {
-//            locationRepo.insert(new Location(0, locationName));
-//        }
-//        int locId = locationRepo.findByName(locationName).getId();
-//        AtomicInteger count;
-//        if (loadsRepo.findAll().size() > 0) {
-//            count = new AtomicInteger(loadsRepo.getMaxId());
-//        } else {
-//            count = new AtomicInteger(0);
-//        }
-//        for (int i = 0; i < loadsAmount; i++) {
-//            loadsRepo.insert(new Loads(0, "LD" + count.incrementAndGet(), locId));
-//        }
+//    public static void main(String[] args) throws SQLException, IOException {
+//
+//        dbFactory = new OrmLiteConnectionFactory(":memory:", SqliteDialect.Provider);
+//
+//        var sqliteRepo = new OrmLiteAuthRepository(dbFactory);
+//        sqliteRepo.CreateMissingTables();
+//        System.out.println("hi");
+//        System.out.println();
+//        ConnectionSource con = new JdbcConnectionSource("jdbc:sqlite::memory:");
+////            LocationDao locationDao = DaoManager.createDao(con, Location.class);
+////            LoadsDao loadsDao = DaoManager.createDao(con, Loads.class);
+//        Dao<Location, Long> locationDao = DaoManager.createDao(con, Location.class);
+//        Dao<Loads, Long> loadsDao = DaoManager.createDao(con, Loads.class);
+//
+//        Location l1 = new Location(null, "testLoc1");
+//        Location l2 = new Location(null, "testLoc2");
+//        Location l3 = new Location(null, "testLoc3");
+//
+//        locationDao.create(l1);
+//        locationDao.create(l2);
+//        locationDao.create(l3);
+//
+//        loadsDao.create(new Loads(null, "l1", l1));
+//        loadsDao.create(new Loads(null, "l2", l2));
+//        loadsDao.create(new Loads(null, "l3", l3));
+//
+//        List<Location> locationList = locationDao.queryForAll();
+//        System.out.println(locationList);
+//
+//        Location location1 = locationDao.queryForId(1L);
+//        System.out.println(location1.toString());
+//        System.out.println("----");
+//        System.out.println(loadsDao.queryForId(3L));
+//        Loads loads1 = loadsDao.queryForId(1L);
+//        Loads loads2 = loadsDao.queryForId(2L);
+//        System.out.println(loads1);
+//        System.out.println(loads2);
+//        con.close();
 //    }
 
-//    private void getLoadsAmountByLocName(String input) {
-//        String[] strSpaces = input.split(" ");
-//        String[] strCommas = input.split(",");
-//        List<String> stringList = loadsRepo.getLocNames();
-//        if (strCommas.length > strSpaces.length) {
-//            for (String s : strCommas) {
-//                System.out.println(s + "  -  " + getAmountByLocName(stringList, s));
-//            }
-//        } else {
-//            for (String s : strSpaces) {
-//                System.out.println(s + "  -  " + getAmountByLocName(stringList, s));
-//            }
-//        }
+    public void checkWorkability() {
+
+    }
+
+//    /**
+//     * Не работает совсем.
+//     *
+//     * @throws JAXBException
+//     * @throws FileNotFoundException
+//     */
+//    public void XMLWriter() throws JAXBException, FileNotFoundException {
+//        JAXBContext context = JAXBContext.newInstance(MasterEntity.class);
+//        Marshaller marshaller = context.createMarshaller();
+//        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//
+//        marshaller.getAttachmentMarshaller();
+//
+//        MasterEntity me = new MasterEntity();
+//
+//        File file = new File("test.xml");
+//        FileOutputStream fos = new FileOutputStream(file);
+//        marshaller.marshal(me, fos);
 //    }
 
-    private int getAmountByLocName(List<String> stringList, String locName) {
-        List<String> copy = new ArrayList<>(stringList);
-        copy.removeAll(Collections.singleton(locName));
-        return stringList.size() - copy.size();
-    }
-
-    /**
-     * Не работает совсем.
-     *
-     * @throws JAXBException
-     * @throws FileNotFoundException
-     */
-    public void XMLWriter() throws JAXBException, FileNotFoundException {
-        JAXBContext context = JAXBContext.newInstance(MasterEntity.class);
-        Marshaller marshaller = context.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-        marshaller.getAttachmentMarshaller();
-
-        MasterEntity me = new MasterEntity();
-
-        File file = new File("test.xml");
-        FileOutputStream fos = new FileOutputStream(file);
-        marshaller.marshal(me, fos);
-    }
-
-    //todo
 //    public static void mainMenu() {
 //        try {
 //            Application app = new Application(new LoadsRepositoryImpl(), new LocationRepositoryImpl());
@@ -179,5 +169,5 @@ public class Application {
 //        } catch (JAXBException | FileNotFoundException | InterruptedException e) {
 //            e.printStackTrace();
 //        }
-//    }
+
 }

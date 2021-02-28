@@ -1,0 +1,38 @@
+### Добавление справочника. Успех
+POST http://localhost:8080/directory
+Content-Type: application/json
+
+{
+"name": "Moscow",
+"abbreviation": "MSC"
+}
+
+### Добавление справочника. Неудача
+POST http://localhost:8080/directory
+Content-Type: application/json
+
+{
+"name": "Moscow"
+}
+
+### Получение справочника по id. Успех
+GET http://localhost:8080/directory/1
+
+### Получение справочника по id. Неудача
+GET http://localhost:8080/directory/0
+
+### Получение всех справочников
+GET http://localhost:8080/directory
+
+### Обновление справочника по id. Если есть - обновляет, если нет - делает вид, что обновляет
+PUT http://localhost:8080/directory/
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "newCityName",
+  "abbreviation": "MSC"
+}
+
+### Удаление по id. Если есть - удаляет, если нет - делает вид, что удаляет
+DELETE http://localhost:8080/directory/1

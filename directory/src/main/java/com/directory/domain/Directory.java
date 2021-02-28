@@ -1,13 +1,14 @@
-package com.dictionary.domain;
+package com.directory.domain;
 
 import lombok.*;
 
 @Getter
 @Setter
 @ToString
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Dictionary {
+public class Directory {
 
     private Long id;
 

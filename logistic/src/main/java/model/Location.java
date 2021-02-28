@@ -1,28 +1,21 @@
 package model;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import lombok.*;
-
-import java.util.Set;
 
 @Setter
 @Getter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@DatabaseTable(tableName = "location"/*, schemaName = "logistic"*/)
 public class Location {
-    private int id;
+    @DatabaseField(generatedId = true)
+    private Long id;
 
+    @DatabaseField
     private String name;
-
-    Set<Loads> loads;
-
-    public Location(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Location(String name) {
-        this.name = name;
-    }
 }
 

@@ -1,6 +1,6 @@
-drop table if exists dictionary;
+drop table if exists directory;
 
-create table dictionary
+create table directory
 (
     id int primary key auto_increment,
     name varchar not null,
